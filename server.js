@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const mongoose = require("mongoose");
-const Product = require("./models/Product");
+const Product = require("./models/product");
 
 const express = require("express");
 const session = require("express-session");
