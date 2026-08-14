@@ -1,10 +1,10 @@
-require('dotenv').config();
+require("dotenv").config();
 
-const express = require('express');
-const session = require('express-session');
-const crypto = require('crypto');
-const path = require('path');
-const { Resend } = require('resend');
+const express = require("express");
+const session = require("express-session");
+const crypto = require("crypto");
+const path = require("path");
+const { Resend } = require("resend");
 
 const app = express();
 
@@ -25,13 +25,32 @@ const OTP_RESEND_MS =
   OTP_RESEND_SECONDS * 1000;
 
 // =====================================================
-// APP CONFIG
+// RESEND
 // =====================================================
 
-app.disable('x-powered-by');
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
+
+function resendReady() {
+  return Boolean(process.env.RESEND_API_KEY);
+}
+
+// =====================================================
+// EXPRESS
+// =====================================================
+
+app.disable("x-powered-by");
+
+// Important for Render
+app.set("trust proxy", 1);
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(
+  express.urlencoded({
+    extended: false
+  })
+);
 
 // =====================================================
 // SESSION
@@ -41,7 +60,7 @@ app.use(
   session({
     secret:
       process.env.SESSION_SECRET ||
-      'vanta-change-this-secret',
+      "vanta-change-this-secret",
 
     resave: false,
 
@@ -49,33 +68,28 @@ app.use(
 
     cookie: {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 1000 * 60 * 60 * 24 * 7
+
+      sameSite: "lax",
+
+      secure:
+        process.env.NODE_ENV === "production",
+
+      maxAge:
+        1000 *
+        60 *
+        60 *
+        24 *
+        7
     }
   })
 );
-
-// =====================================================
-// RESEND
-// =====================================================
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
-function resendReady() {
-  return Boolean(
-    process.env.RESEND_API_KEY &&
-    process.env.MAIL_FROM
-  );
-}
 
 // =====================================================
 // OTP STORAGE
 // =====================================================
 
 const otpStore = new Map();
+
 const requestStore = new Map();
 
 // =====================================================
@@ -83,13 +97,15 @@ const requestStore = new Map();
 // =====================================================
 
 function normalizeEmail(email) {
-  return String(email || '')
+  return String(email || "")
     .trim()
     .toLowerCase();
 }
 
 function validEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    email
+  );
 }
 
 function makeOtp() {
@@ -101,12 +117,12 @@ function makeOtp() {
 function hashOtp(email, otp) {
   return crypto
     .createHmac(
-      'sha256',
+      "sha256",
       process.env.SESSION_SECRET ||
-        'vanta-project-secret'
+        "vanta-project-secret"
     )
     .update(`${email}:${otp}`)
-    .digest('hex');
+    .digest("hex");
 }
 
 // =====================================================
@@ -116,13 +132,19 @@ function hashOtp(email, otp) {
 function cleanupStores() {
   const now = Date.now();
 
-  for (const [email, record] of otpStore) {
+  for (const [
+    email,
+    record
+  ] of otpStore.entries()) {
     if (record.expiresAt <= now) {
       otpStore.delete(email);
     }
   }
 
-  for (const [email, timestamp] of requestStore) {
+  for (const [
+    email,
+    timestamp
+  ] of requestStore.entries()) {
     if (
       now - timestamp >
       OTP_RESEND_MS
@@ -142,19 +164,20 @@ setInterval(
 // =====================================================
 
 app.post(
-  '/api/auth/request-otp',
+  "/api/auth/request-otp",
   async (req, res) => {
     try {
-      const email = normalizeEmail(
-        req.body.email
+      const email =
+        normalizeEmail(
+          req.body.email
+        );
+
+      console.log(
+        "================================"
       );
 
       console.log(
-        '--------------------------------'
-      );
-
-      console.log(
-        'OTP REQUEST:',
+        "OTP REQUEST:",
         email
       );
 
@@ -163,34 +186,7 @@ app.post(
         return res.status(400).json({
           ok: false,
           message:
-            'Please enter a valid email address.'
-        });
-      }
-
-      // Check Resend configuration
-      if (!resendReady()) {
-        console.error(
-          'RESEND IS NOT CONFIGURED'
-        );
-
-        console.error(
-          'RESEND_API_KEY:',
-          process.env.RESEND_API_KEY
-            ? 'present'
-            : 'missing'
-        );
-
-        console.error(
-          'MAIL_FROM:',
-          process.env.MAIL_FROM
-            ? 'present'
-            : 'missing'
-        );
-
-        return res.status(500).json({
-          ok: false,
-          message:
-            'Email service is not configured. Check RESEND_API_KEY and MAIL_FROM in Render.'
+            "Please enter a valid email address."
         });
       }
 
@@ -198,23 +194,37 @@ app.post(
       const lastSent =
         requestStore.get(email) || 0;
 
-      const elapsed =
-        Date.now() - lastSent;
-
       const remaining =
-        OTP_RESEND_MS - elapsed;
+        OTP_RESEND_MS -
+        (Date.now() - lastSent);
 
       if (remaining > 0) {
-        const seconds = Math.ceil(
-          remaining / 1000
-        );
-
         return res.status(429).json({
           ok: false,
-          message:
-            `Please wait ${seconds} seconds before requesting another code.`,
 
-          retryAfter: seconds
+          message:
+            `Please wait ${Math.ceil(
+              remaining / 1000
+            )} seconds before requesting another code.`,
+
+          retryAfter:
+            Math.ceil(
+              remaining / 1000
+            )
+        });
+      }
+
+      // Check Resend API key
+      if (!resendReady()) {
+        console.error(
+          "RESEND_API_KEY IS MISSING"
+        );
+
+        return res.status(500).json({
+          ok: false,
+
+          message:
+            "Email service is not configured. Add RESEND_API_KEY in Render."
         });
       }
 
@@ -222,12 +232,15 @@ app.post(
       const otp = makeOtp();
 
       console.log(
-        'OTP GENERATED'
+        "OTP GENERATED"
       );
 
       // Store hashed OTP
       otpStore.set(email, {
-        hash: hashOtp(email, otp),
+        hash: hashOtp(
+          email,
+          otp
+        ),
 
         expiresAt:
           Date.now() +
@@ -236,36 +249,47 @@ app.post(
         attempts: 0
       });
 
-      // Start resend timer
-      requestStore.set(
-        email,
-        Date.now()
-      );
-
-      // =================================================
-      // SEND THROUGH RESEND
-      // =================================================
+      // Sender
+      const from =
+        process.env.MAIL_FROM ||
+        "VANTA <onboarding@resend.dev>";
 
       console.log(
-        'SENDING OTP THROUGH RESEND...'
+        "FROM:",
+        from
       );
 
-      const result =
+      console.log(
+        "TO:",
+        email
+      );
+
+      console.log(
+        "SENDING OTP..."
+      );
+
+      // =================================================
+      // SEND EMAIL USING RESEND
+      // =================================================
+
+      const {
+        data,
+        error
+      } =
         await resend.emails.send({
-          from: process.env.MAIL_FROM,
+          from: from,
 
           to: [email],
 
           subject:
-            'Your VANTA verification code',
+            "Your VANTA verification code",
 
-          text: `
-Your VANTA verification code is ${otp}.
+          text:
+            `Your VANTA verification code is ${otp}.
 
 This code expires in ${OTP_EXPIRES_MINUTES} minutes.
 
-If you did not request this code, you can safely ignore this email.
-          `.trim(),
+If you did not request this code, you can safely ignore this email.`,
 
           html: `
 <!DOCTYPE html>
@@ -331,83 +355,83 @@ This code expires in ${OTP_EXPIRES_MINUTES} minutes.
 font-size:12px;
 color:#999999;
 ">
-If you did not request this code, you can safely ignore this email.
+If you did not request this code,
+you can safely ignore this email.
 </p>
 
 </div>
 
 </body>
 </html>
-          `
+`
         });
 
-      // =================================================
-      // RESEND ERROR
-      // =================================================
-
-      if (result.error) {
+      // Resend returned an error
+      if (error) {
         console.error(
-          'RESEND EMAIL ERROR:'
+          "RESEND EMAIL ERROR:"
         );
 
         console.error(
-          JSON.stringify(
-            result.error,
-            null,
-            2
-          )
+          error
         );
 
-        // Remove invalid OTP
+        // Remove OTP because email wasn't sent
         otpStore.delete(email);
-
-        requestStore.delete(email);
 
         return res.status(500).json({
           ok: false,
+
           message:
-            'Unable to send verification email.'
+            error.message ||
+            "Unable to send verification email."
         });
       }
 
-      // =================================================
-      // SUCCESS
-      // =================================================
-
-      console.log(
-        'OTP EMAIL SENT SUCCESSFULLY'
+      // Email sent
+      requestStore.set(
+        email,
+        Date.now()
       );
 
       console.log(
-        'RESEND EMAIL ID:',
-        result.data?.id || 'unknown'
+        "OTP EMAIL SENT SUCCESSFULLY"
       );
 
       console.log(
-        '--------------------------------'
+        "RESEND ID:",
+        data?.id || "unknown"
+      );
+
+      console.log(
+        "================================"
       );
 
       return res.json({
         ok: true,
 
         message:
-          'Verification code sent successfully.',
+          `Verification code sent to ${email}.`,
 
         expiresIn:
-          OTP_EXPIRES_MINUTES * 60
+          OTP_EXPIRES_MINUTES *
+          60
       });
 
     } catch (error) {
       console.error(
-        'OTP EMAIL ERROR:'
+        "OTP EMAIL ERROR:"
       );
 
-      console.error(error);
+      console.error(
+        error
+      );
 
       return res.status(500).json({
         ok: false,
+
         message:
-          'Unable to send the verification email right now.'
+          "Unable to send the verification email right now."
       });
     }
   }
@@ -418,7 +442,7 @@ If you did not request this code, you can safely ignore this email.
 // =====================================================
 
 app.post(
-  '/api/auth/verify-otp',
+  "/api/auth/verify-otp",
   (req, res) => {
 
     const email =
@@ -428,7 +452,7 @@ app.post(
 
     const otp =
       String(
-        req.body.otp || ''
+        req.body.otp || ""
       ).trim();
 
     // Validate input
@@ -438,20 +462,22 @@ app.post(
     ) {
       return res.status(400).json({
         ok: false,
+
         message:
-          'Enter the 6-digit verification code.'
+          "Enter the 6-digit verification code."
       });
     }
 
-    // Find OTP
+    // Get OTP
     const record =
       otpStore.get(email);
 
     if (!record) {
       return res.status(400).json({
         ok: false,
+
         message:
-          'No active verification code. Please request a new code.'
+          "This code has expired or was not requested. Please request a new one."
       });
     }
 
@@ -464,8 +490,9 @@ app.post(
 
       return res.status(400).json({
         ok: false,
+
         message:
-          'This code has expired. Please request a new one.'
+          "This code has expired. Please request a new one."
       });
     }
 
@@ -477,12 +504,13 @@ app.post(
 
       return res.status(429).json({
         ok: false,
+
         message:
-          'Too many incorrect attempts. Please request a new code.'
+          "Too many incorrect attempts. Please request a new code."
       });
     }
 
-    // Verify
+    // Compare OTP
     const submittedHash =
       hashOtp(
         email,
@@ -495,23 +523,28 @@ app.post(
     ) {
       return res.status(401).json({
         ok: false,
+
         message:
-          'Incorrect verification code.'
+          "Incorrect verification code."
       });
     }
 
-    // Success
+    // =================================================
+    // LOGIN SUCCESS
+    // =================================================
+
     otpStore.delete(email);
 
     requestStore.delete(email);
 
     req.session.user = {
       email: email,
+
       verified: true
     };
 
     console.log(
-      'USER VERIFIED:',
+      "USER VERIFIED:",
       email
     );
 
@@ -525,20 +558,25 @@ app.post(
 );
 
 // =====================================================
-// CHECK LOGIN
+// CHECK CURRENT USER
 // =====================================================
 
 app.get(
-  '/api/auth/me',
+  "/api/auth/me",
   (req, res) => {
 
-    res.json({
+    const authenticated =
+      Boolean(
+        req.session.user &&
+        req.session.user.verified
+      );
+
+    return res.json({
       ok: true,
 
       authenticated:
-        Boolean(
-          req.session.user?.verified
-        ),
+
+        authenticated,
 
       user:
         req.session.user ||
@@ -552,27 +590,32 @@ app.get(
 // =====================================================
 
 app.post(
-  '/api/auth/logout',
+  "/api/auth/logout",
   (req, res) => {
 
     req.session.destroy(
-      (error) => {
+      error => {
 
         if (error) {
           console.error(
-            'LOGOUT ERROR:',
+            "LOGOUT ERROR:",
             error
           );
 
           return res.status(500).json({
             ok: false,
+
             message:
-              'Unable to logout.'
+              "Unable to logout."
           });
         }
 
         res.clearCookie(
-          'connect.sid'
+          "connect.sid"
+        );
+
+        console.log(
+          "USER LOGGED OUT"
         );
 
         return res.json({
@@ -588,14 +631,14 @@ app.post(
 // =====================================================
 
 app.get(
-  '/api/health',
+  "/api/health",
   (req, res) => {
 
-    res.json({
+    return res.json({
       ok: true,
 
       emailProvider:
-        'Resend',
+        "Resend",
 
       emailConfigured:
         resendReady()
@@ -604,31 +647,31 @@ app.get(
 );
 
 // =====================================================
-// STATIC FRONTEND
+// FRONTEND
 // =====================================================
 
 app.use(
   express.static(
     path.join(
       __dirname,
-      'public'
+      "public"
     )
   )
 );
 
 // =====================================================
-// HOME
+// HOME PAGE
 // =====================================================
 
 app.get(
-  '/',
+  "/",
   (req, res) => {
 
     res.sendFile(
       path.join(
         __dirname,
-        'public',
-        'index.html'
+        "public",
+        "index.html"
       )
     );
   }
@@ -640,11 +683,11 @@ app.get(
 
 app.listen(
   PORT,
-  '0.0.0.0',
+  "0.0.0.0",
   () => {
 
     console.log(
-      '================================'
+      "================================"
     );
 
     console.log(
@@ -652,19 +695,26 @@ app.listen(
     );
 
     console.log(
-      'Email provider: Resend'
+      "Email provider: Resend"
     );
 
     console.log(
       `Resend configured: ${
         resendReady()
-          ? 'YES'
-          : 'NO'
+          ? "YES"
+          : "NO"
       }`
     );
 
     console.log(
-      '================================'
+      `Mail from: ${
+        process.env.MAIL_FROM ||
+        "VANTA <onboarding@resend.dev>"
+      }`
+    );
+
+    console.log(
+      "================================"
     );
   }
 );

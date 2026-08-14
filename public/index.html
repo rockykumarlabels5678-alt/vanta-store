@@ -85,6 +85,42 @@
   }
   .login-link .reg{color:var(--cobalt);}
   .login-link:hover{background:var(--ink); color:var(--paper);}
+  .auth-area{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .username-display{
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:11px;
+    font-weight:700;
+  }
+  .logout-btn{
+    border:1px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    padding:9px 12px;
+    cursor:pointer;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  .logout-btn:hover{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .logout-btn:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+  }
+  @media (max-width: 760px){
+    .username-display{max-width:120px;}
+    .logout-btn{padding:8px 9px;}
+  }
+
   .cart-count{
     background:var(--yellow); color:var(--ink); border-radius:50%;
     width:19px;height:19px; display:flex; align-items:center; justify-content:center;
@@ -326,10 +362,6 @@
     .login-link{padding:9px;}
     .foot-grid{grid-template-columns:1fr 1fr; row-gap:28px;}
   }
-
-  .login-link.account-link{background:var(--ink);color:var(--paper);}
-  .account-menu{position:relative;}
-
 </style>
 </head>
 <body>
@@ -351,10 +383,18 @@
       <a onclick="filterCat('print')">Shoes</a>
     </nav>
     <div class="nav-actions">
-      <a class="login-link mono" href="login.html">
-        <span class="reg" style="width:13px;height:13px;"><span class="reg-circle" style="width:7px;height:7px;left:3px;top:3px;"></span></span>
-        <span class="login-label" id="accountLabel">LOGIN</span>
-      </a>
+      <div class="auth-area" id="authArea">
+        <a class="login-link mono" href="login.html" id="loginLink">
+          <span class="reg" style="width:13px;height:13px;"><span class="reg-circle" style="width:7px;height:7px;left:3px;top:3px;"></span></span>
+          <span class="login-label">LOGIN</span>
+        </a>
+
+        <span class="username-display mono" id="usernameDisplay" style="display:none;"></span>
+
+        <button class="logout-btn mono" id="logoutBtn" type="button" style="display:none;">
+          LOG OUT
+        </button>
+      </div>
       <button class="cart-btn" onclick="openDrawer()">
         <span class="mono">CART</span>
         <span class="cart-count" id="cartCount">0</span>
@@ -385,7 +425,7 @@
         <span>CHRONO WATCH · ONYX BLACK</span>
         <div class="hero-product-foot">
           <b>₹1,899.00</b>
-          <button class="add-btn" onclick="addToCart('hero-watch', this); openDrawer();">+ ADD</button>
+          <button class="add-btn" onclick="addToCart('w1', this); openDrawer();">+ ADD</button>
         </div>
       </div>
     </div>
@@ -467,16 +507,6 @@
 <div class="toast" id="toast"><span class="dot"></span><span id="toastText">Added to cart</span></div>
 
 <script>
-const heroProduct = {
-id:'hero-watch',
-cat:'classic',
-name:'Chrono Watch · Onyx Black',
-desc:'Featured hero watch with a bold black-and-gold chronograph design.',
-price:1899,
-swatch:'classic-1',
-image:'https://di2ponv0v5otw.cloudfront.net/posts/2023/09/01/64f28e13fee468e00a25ac6d/m_64f28f2f91e053df940b68e3.jpeg'
-};
-
 const products = [
 {id:'w1',cat:'classic',name:'Onyx Chronograph Watch',desc:'Brushed steel case, black dial and precision quartz movement.',price:3499,swatch:'classic-1',image:'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=85'},
 {id:'w2',cat:'classic',name:'Silver Minimal Watch',desc:'Clean silver case with a timeless white dial and mesh strap.',price:2999,swatch:'classic-2',image:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85'},
@@ -587,7 +617,7 @@ function updateCartUI(){
     itemsEl.innerHTML = '<div class="empty-cart">YOUR CART IS EMPTY<br>— GO FIND YOUR STYLE —</div>';
   } else {
     itemsEl.innerHTML = ids.map(id=>{
-      const p = id==='hero-watch' ? heroProduct : products.find(x=>x.id===id);
+      const p = products.find(x=>x.id===id);
       const qty = cart[id];
       return `
         <div class="cart-item">
@@ -611,7 +641,7 @@ function updateCartUI(){
   }
 
   const subtotal = ids.reduce((s,id)=>{
-    const p = id==='hero-watch' ? heroProduct : products.find(x=>x.id===id);
+    const p = products.find(x=>x.id===id);
     return s + p.price*cart[id];
   },0);
   const shipping = subtotal===0 ? 0 : (subtotal >= 1999 ? 0 : 99);
@@ -648,27 +678,75 @@ updateCartUI();
 </script>
 
 <script>
-async function refreshAccountUI(){
-  const label=document.getElementById('accountLabel');
-  const link=document.querySelector('.login-link');
-  if(!label || !link) return;
-  try{
-    const response=await fetch('/api/auth/me',{credentials:'same-origin'});
-    const data=await response.json();
-    if(data.authenticated && data.user){
-      label.textContent=data.user.email;
-      link.href='#';
-      link.classList.add('account-link');
-      link.onclick=async function(e){
-        e.preventDefault();
-        if(!confirm('Log out of VANTA?')) return;
-        await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});
-        window.location.reload();
-      };
+/* =========================================
+   VANTA AUTH UI
+   ========================================= */
+
+async function updateAuthUI() {
+  const loginLink = document.getElementById('loginLink');
+  const usernameDisplay = document.getElementById('usernameDisplay');
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if (!loginLink || !usernameDisplay || !logoutBtn) return;
+
+  try {
+    const response = await fetch('/api/auth/me', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store'
+    });
+
+    const data = await response.json();
+
+    if (data.authenticated && data.user) {
+      loginLink.style.display = 'none';
+      usernameDisplay.textContent = data.user.email;
+      usernameDisplay.title = data.user.email;
+      usernameDisplay.style.display = 'inline-block';
+      logoutBtn.style.display = 'inline-block';
+    } else {
+      loginLink.style.display = 'inline-flex';
+      usernameDisplay.style.display = 'none';
+      logoutBtn.style.display = 'none';
     }
-  }catch(e){}
+  } catch (error) {
+    console.error('AUTH CHECK ERROR:', error);
+  }
 }
-refreshAccountUI();
+
+async function logoutUser() {
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if (logoutBtn) {
+    logoutBtn.disabled = true;
+    logoutBtn.textContent = 'LOGGING OUT...';
+  }
+
+  try {
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include'
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.ok) {
+      throw new Error(data.message || 'Logout failed.');
+    }
+
+    window.location.replace('/');
+  } catch (error) {
+    console.error('LOGOUT ERROR:', error);
+    if (logoutBtn) {
+      logoutBtn.disabled = false;
+      logoutBtn.textContent = 'LOG OUT';
+    }
+    alert('Unable to logout. Please try again.');
+  }
+}
+
+document.getElementById('logoutBtn')?.addEventListener('click', logoutUser);
+updateAuthUI();
 </script>
 
 </body>
