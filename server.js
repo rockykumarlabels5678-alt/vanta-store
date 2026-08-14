@@ -1,5 +1,8 @@
 require("dotenv").config();
 
+const mongoose = require("mongoose");
+const Product = require("./models/Product");
+
 const express = require("express");
 const session = require("express-session");
 const crypto = require("crypto");
@@ -7,6 +10,14 @@ const path = require("path");
 const { Resend } = require("resend");
 
 const app = express();
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => {
+    console.log("✅ MongoDB connected");
+  })
+  .catch((error) => {
+    console.error("❌ MongoDB connection failed:", error.message);
+  });
 
 const PORT = Number(process.env.PORT || 3000);
 
@@ -46,6 +57,171 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 app.use(express.json());
+// ===============================
+// PRODUCT API
+// ===============================
+
+app.post("/api/products", async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      category,
+      image,
+      stock,
+      featured
+    } = req.body;
+
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      category,
+      image,
+      stock,
+      featured
+    });
+
+    res.status(201).json({
+      ok: true,
+      message: "Product created successfully",
+      product
+    });
+
+  } catch (error) {
+    console.error("Product creation error:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Failed to create product",
+      error: error.message
+    });
+  }
+});
+app.get("/api/products", async (req, res) => {
+  try {
+    const products = await Product.find().sort({ createdAt: -1 });
+
+    res.json({
+      ok: true,
+      products
+    });
+  } catch (error) {
+    console.error("Product fetch error:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Failed to fetch products",
+      error: error.message
+    });
+  }
+});
+app.get("/api/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        ok: false,
+        message: "Product not found"
+      });
+    }
+
+    res.json({
+      ok: true,
+      product
+    });
+
+  } catch (error) {
+    console.error("Single product fetch error:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Failed to fetch product",
+      error: error.message
+    });
+  }
+});
+app.put("/api/products/:id", async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      price,
+      category,
+      image,
+      stock,
+      featured
+    } = req.body;
+
+    const product = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        description,
+        price,
+        category,
+        image,
+        stock,
+        featured
+      },
+      {
+        new: true,
+        runValidators: true
+      }
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        ok: false,
+        message: "Product not found"
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Product updated successfully",
+      product
+    });
+
+  } catch (error) {
+    console.error("Product update error:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Failed to update product",
+      error: error.message
+    });
+  }
+});
+app.delete("/api/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findByIdAndDelete(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({
+        ok: false,
+        message: "Product not found"
+      });
+    }
+
+    res.json({
+      ok: true,
+      message: "Product deleted successfully",
+      product
+    });
+
+  } catch (error) {
+    console.error("Product delete error:", error);
+
+    res.status(500).json({
+      ok: false,
+      message: "Failed to delete product",
+      error: error.message
+    });
+  }
+});
 app.use(
   express.urlencoded({
     extended: false
