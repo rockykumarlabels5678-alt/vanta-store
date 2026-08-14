@@ -1,0 +1,20 @@
+{
+  "name": "vanta-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vanta watches, glasses and shoes store with Node.js/Express email OTP authentication",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-session": "^1.18.2",
+    "nodemailer": "^7.0.5"
+  }
+}

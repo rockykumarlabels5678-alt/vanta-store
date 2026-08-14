@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VANTA — Watches, Glasses &amp; Shoes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:wght@400;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDEAE3;
+    --paper-dim:#E2DDCF;
+    --ink:#15130F;
+    --ink-soft:#3A362E;
+    --cobalt:#2A4BFF;
+    --yellow:#FFC93C;
+    --grey:#8B8577;
+    --line: rgba(21,19,15,0.14);
+    --radius: 3px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'Space Mono', monospace;}
+  .display{font-family:'Anton', sans-serif; font-weight:400; text-transform:uppercase; letter-spacing:0.01em;}
+
+  /* ---------- registration mark signature element ---------- */
+  .reg{
+    width:16px;height:16px;position:relative;flex-shrink:0;
+    opacity:0.55;
+  }
+  .reg::before,.reg::after{content:"";position:absolute;background:currentColor;}
+  .reg::before{left:7px;top:0;width:2px;height:16px;}
+  .reg::after{top:7px;left:0;width:16px;height:2px;}
+  .reg-circle{position:absolute;width:9px;height:9px;border:1.5px solid currentColor;border-radius:50%;left:3.5px;top:3.5px;}
+
+  /* ---------- top bar ---------- */
+  header{
+    position:sticky; top:0; z-index:40;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  .topline{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 28px; font-size:11px; letter-spacing:0.08em;
+    background:var(--ink); color:var(--paper);
+  }
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 28px;
+  }
+  .logo{
+    display:flex; align-items:center; gap:10px;
+    font-size:26px; letter-spacing:0.01em;
+  }
+  .logo .reg{color:var(--cobalt);}
+  .nav-links{display:flex; gap:30px; align-items:center;}
+  .nav-actions{display:flex; gap:12px; align-items:center;}
+  .nav-links a{
+    color:var(--ink); text-decoration:none; font-size:13px; font-weight:600;
+    letter-spacing:0.04em; text-transform:uppercase; cursor:pointer;
+    border-bottom:2px solid transparent; padding-bottom:3px;
+    transition:border-color .15s ease;
+  }
+  .nav-links a:hover{border-color:var(--cobalt);}
+  .cart-btn{
+    display:flex; align-items:center; gap:8px;
+    background:var(--ink); color:var(--paper);
+    border:none; padding:10px 16px; border-radius:var(--radius);
+    font-family:'Space Mono', monospace; font-size:13px; cursor:pointer;
+    letter-spacing:0.02em;
+  }
+  .cart-btn:hover{background:var(--cobalt);}
+  .login-link{
+    display:flex; align-items:center; gap:7px;
+    font-size:12.5px; letter-spacing:0.04em; color:var(--ink);
+    border:1.5px solid var(--ink); padding:9px 14px; border-radius:var(--radius);
+    transition: all .12s ease;
+  }
+  .login-link .reg{color:var(--cobalt);}
+  .login-link:hover{background:var(--ink); color:var(--paper);}
+  .cart-count{
+    background:var(--yellow); color:var(--ink); border-radius:50%;
+    width:19px;height:19px; display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:64px 28px 40px; position:relative; overflow:hidden;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.15fr 0.85fr; gap:40px; align-items:end;
+    max-width:1280px; margin:0 auto;
+  }
+  .eyebrow{
+    display:flex; align-items:center; gap:10px; margin-bottom:18px;
+    font-size:12px; letter-spacing:0.14em; color:var(--ink-soft);
+  }
+  .eyebrow .reg{color:var(--cobalt);}
+  h1.display{
+    font-size:clamp(52px, 8vw, 108px); line-height:0.88; margin:0 0 20px;
+  }
+  h1.display .stroke{
+    color:transparent; -webkit-text-stroke:2px var(--ink);
+  }
+  h1.display .fill-cobalt{color:var(--cobalt);}
+  .hero-sub{
+    max-width:420px; font-size:16px; line-height:1.55; color:var(--ink-soft); margin-bottom:26px;
+  }
+  .hero-cta{
+    display:inline-flex; 
+    align-items:center; 
+    gap:10px;
+    background:var(--ink); 
+    color:var(--paper); 
+    border:none;
+    padding:16px 26px; 
+    font-size:13px; 
+    letter-spacing:0.06em; 
+    text-transform:uppercase;
+    font-weight:600; 
+    cursor:pointer; 
+    border-radius:var(--radius);
+  }
+  .hero-cta:hover{background:var(--cobalt);}
+  .hero-panel{
+  aspect-ratio:1/1.05;
+  border-radius:var(--radius);
+  background-image:url("https://di2ponv0v5otw.cloudfront.net/posts/2023/09/01/64f28e13fee468e00a25ac6d/m_64f28f2f91e053df940b68e3.jpeg");
+  background-size:cover;
+  background-position:center;
+  position:relative;
+  display:flex;
+  align-items:flex-end;
+  padding:22px;
+}
+  .hero-panel .tag{
+    background:var(--paper); color:var(--ink); padding:10px 14px; border-radius:var(--radius);
+    font-family:'Space Mono',monospace; font-size:12px; display:flex; flex-direction:column; gap:2px;
+  }
+  .hero-panel .tag b{font-size:14px;}
+  .hero-product-foot{display:flex; align-items:center; justify-content:space-between; gap:24px; margin-top:8px;}
+  .hero-product-foot .add-btn{
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.03em;
+    background:transparent; border:1.5px solid var(--ink); color:var(--ink);
+    padding:8px 12px; border-radius:var(--radius); cursor:pointer; text-transform:uppercase;
+    transition:all .12s ease;
+  }
+  .hero-product-foot .add-btn:hover{background:var(--ink); color:var(--paper);}
+  .hero-product-foot .add-btn.stamped{background:var(--cobalt); border-color:var(--cobalt); color:#fff; transform:scale(0.94);}
+  
+  .hero-panel .corner{
+    position:absolute; width:26px; height:26px; border:1.5px solid rgba(237,234,227,0.5);
+  }
+  .hero-panel .corner.tl{top:16px; left:16px; border-right:none; border-bottom:none;}
+  .hero-panel .corner.br{bottom:16px; right:16px; border-left:none; border-top:none;}
+
+  .strip{
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    background:var(--paper-dim);
+    overflow:hidden; white-space:nowrap; padding:11px 0;
+  }
+  .strip-track{display:inline-block; animation: scroll 22s linear infinite;}
+  .strip span{
+    font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.05em;
+    margin:0 22px; color:var(--ink-soft);
+  }
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* ---------- catalog ---------- */
+  .catalog{max-width:1280px; margin:0 auto; padding:56px 28px 90px;}
+  .cat-head{
+    display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px;
+    flex-wrap:wrap; gap:16px;
+  }
+  .cat-head h2.display{font-size:36px; margin:0;}
+  .tabs{display:flex; gap:8px; flex-wrap:wrap;}
+  .tab{
+    font-family:'Space Mono', monospace; font-size:12px; letter-spacing:0.04em;
+    padding:9px 16px; border:1.5px solid var(--ink); border-radius:20px;
+    background:transparent; cursor:pointer; text-transform:uppercase;
+    transition: all .15s ease;
+  }
+  .tab.active{background:var(--ink); color:var(--paper);}
+  .tab:hover:not(.active){background:rgba(21,19,15,0.06);}
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr)); gap:22px;
+  }
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; display:flex; flex-direction:column;
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-4px); box-shadow:0 14px 28px -18px rgba(21,19,15,0.5);}
+  .swatch{aspect-ratio:1/1; position:relative; display:flex; align-items:flex-start; justify-content:flex-end; padding:12px; overflow:hidden;}
+  .product-image{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform .25s ease, filter .25s ease;}
+  .card:hover .product-image{transform:scale(1.045); filter:saturate(1.05);}
+  .swatch::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.10),transparent 38%,rgba(0,0,0,.18));z-index:1;pointer-events:none;}
+  .swatch>.reg{z-index:2;}
+  .swatch .reg{color:rgba(255,255,255,0.75);}
+  .swatch.classic-1{background:linear-gradient(150deg,#3A362E,#15130F);}
+  .swatch.classic-2{background:linear-gradient(150deg,#8B8577,#5C5747);}
+  .swatch.classic-3{background:linear-gradient(150deg,#C7C2B4,#8B8577);}
+  .swatch.classic-4{background:linear-gradient(150deg,#2A4BFF,#15267A);}
+  .swatch.classic-5{background:linear-gradient(150deg,#EDEAE3,#C7C2B4); }
+  .swatch.classic-5 .reg{color:var(--ink);}
+  .swatch.glass-1{background:linear-gradient(135deg,#dfe7ff,#8fa4ff 45%,#2A4BFF 100%); position:relative;}
+  .swatch.glass-2{background:linear-gradient(135deg,#fff7df,#FFC93C 50%,#C98A00 100%);}
+  .swatch.glass-3{background:linear-gradient(135deg,#f2f2f2,#c9c9c9 45%,#8B8577 100%);}
+  .swatch.glass-4{background:linear-gradient(135deg,#ffe1ea,#ff9db8 45%,#c94770 100%);}
+  .swatch.glass-5{background:linear-gradient(135deg,#dcffe9,#7fe3a8 45%,#1f9955 100%);}
+  .swatch.glass-1 .reg,.swatch.glass-2 .reg,.swatch.glass-3 .reg,.swatch.glass-4 .reg,.swatch.glass-5 .reg{color:rgba(21,19,15,0.45);}
+  .swatch.glass::after{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.55) 48%, transparent 56%);
+  }
+  .swatch.print-1{background:var(--ink);}
+  .swatch.print-2{background:#2A4BFF;}
+  .swatch.print-3{background:#C94F2E;}
+  .swatch.print-4{background:var(--yellow);}
+  .swatch.print-4 .reg{color:var(--ink);}
+  .swatch.print-5{background:#3A362E;}
+  .print-mark{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  }
+  .print-mark svg{width:56%; height:56%;}
+
+  .card-body{padding:15px 16px 18px; display:flex; flex-direction:column; gap:9px; flex:1;}
+  .card-cat{font-size:10px; letter-spacing:0.1em; text-transform:uppercase; color:var(--grey); font-family:'Space Mono',monospace;}
+  .card-name{font-size:15px; font-weight:600; line-height:1.3;}
+  .card-desc{font-size:12.5px; color:var(--ink-soft); line-height:1.45; flex:1;}
+  .card-foot{display:flex; align-items:center; justify-content:space-between; margin-top:6px;}
+  .card-price{font-family:'Space Mono',monospace; font-size:15px; font-weight:700;}
+  .add-btn{
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:0.03em;
+    background:transparent; border:1.5px solid var(--ink); color:var(--ink);
+    padding:8px 12px; border-radius:var(--radius); cursor:pointer; text-transform:uppercase;
+    transition: all .12s ease;
+  }
+  .add-btn:hover{background:var(--ink); color:var(--paper);}
+  .add-btn.stamped{background:var(--cobalt); border-color:var(--cobalt); color:#fff; transform:scale(0.94);}
+
+  /* ---------- footer ---------- */
+  footer{
+    background:var(--ink); color:var(--paper); padding:56px 28px 30px; margin-top:20px;
+  }
+  .foot-grid{
+    max-width:1280px; margin:0 auto; display:grid; grid-template-columns:1.3fr 1fr 1fr 1fr; gap:36px;
+  }
+  .foot-grid h3{font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--yellow); margin:0 0 14px;}
+  .foot-grid p, .foot-grid a{font-size:13px; color:rgba(237,234,227,0.75); line-height:1.9; text-decoration:none; display:block;}
+  .foot-bottom{
+    max-width:1280px; margin:40px auto 0; padding-top:20px; border-top:1px solid rgba(237,234,227,0.15);
+    display:flex; justify-content:space-between; font-size:11px; color:rgba(237,234,227,0.5);
+    font-family:'Space Mono',monospace; flex-wrap:wrap; gap:10px;
+  }
+
+  /* ---------- cart drawer ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(21,19,15,0.45); opacity:0; pointer-events:none;
+    transition:opacity .2s ease; z-index:50;
+  }
+  .overlay.open{opacity:1; pointer-events:auto;}
+  .drawer{
+    position:fixed; top:0; right:0; height:100%; width:min(420px,92vw);
+    background:var(--paper); z-index:51; transform:translateX(100%);
+    transition:transform .25s ease; display:flex; flex-direction:column;
+    box-shadow:-8px 0 30px rgba(0,0,0,0.15);
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{
+    display:flex; align-items:center; justify-content:space-between; padding:20px 22px;
+    border-bottom:1px solid var(--line);
+  }
+  .drawer-head h3{margin:0; font-size:18px;}
+  .close-btn{background:none; border:none; font-size:22px; cursor:pointer; color:var(--ink); line-height:1;}
+  .drawer-items{flex:1; overflow-y:auto; padding:16px 22px;}
+  .empty-cart{color:var(--grey); font-size:13px; text-align:center; margin-top:60px; font-family:'Space Mono',monospace;}
+  .cart-item{
+    display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--line);
+  }
+  .cart-swatch{width:52px; height:52px; border-radius:var(--radius); flex-shrink:0;}
+  .ci-info{flex:1; min-width:0;}
+  .ci-name{font-size:13.5px; font-weight:600; margin-bottom:2px;}
+  .ci-cat{font-size:10.5px; color:var(--grey); font-family:'Space Mono',monospace; text-transform:uppercase;}
+  .ci-row{display:flex; align-items:center; justify-content:space-between; margin-top:8px;}
+  .qty{display:flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size:13px;}
+  .qty button{
+    width:22px; height:22px; border:1px solid var(--ink); background:none; border-radius:3px; cursor:pointer; font-size:13px; line-height:1;
+  }
+  .ci-price{font-family:'Space Mono',monospace; font-size:13.5px; font-weight:700;}
+  .remove{font-size:11px; color:var(--grey); background:none; border:none; cursor:pointer; text-decoration:underline; font-family:'Work Sans',sans-serif;}
+  .drawer-foot{padding:20px 22px 24px; border-top:1px solid var(--line);}
+  .foot-row{display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; color:var(--ink-soft);}
+  .foot-row.total{font-size:16px; font-weight:700; color:var(--ink); margin-top:10px;}
+  .checkout-btn{
+    width:100%; background:var(--ink); color:var(--paper); border:none; padding:15px; margin-top:14px;
+    border-radius:var(--radius); font-size:13px; letter-spacing:0.05em; text-transform:uppercase; font-weight:600; cursor:pointer;
+  }
+  .checkout-btn:hover{background:var(--cobalt);}
+  .checkout-btn:disabled{background:var(--grey); cursor:not-allowed;}
+
+  .toast{
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--ink); color:var(--paper); padding:13px 22px; border-radius:var(--radius);
+    font-family:'Space Mono',monospace; font-size:13px; z-index:60; opacity:0; pointer-events:none;
+    transition:all .25s ease; display:flex; align-items:center; gap:10px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast .dot{width:7px; height:7px; border-radius:50%; background:var(--yellow);}
+
+  @media (max-width:800px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-panel{display:none;}
+    .nav-links{display:none;}
+    .login-link .login-label{display:none;}
+    .login-link{padding:9px;}
+    .foot-grid{grid-template-columns:1fr 1fr; row-gap:28px;}
+  }
+
+  .login-link.account-link{background:var(--ink);color:var(--paper);}
+  .account-menu{position:relative;}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topline mono">
+    <span>PREMIUM ACCESSORIES · FREE EXCHANGES</span>
+    <span>ORDERS SHIP IN 48HR</span>
+  </div>
+  <div class="nav">
+    <div class="logo display">
+      <span class="reg"><span class="reg-circle"></span></span>
+      VANTA
+    </div>
+    <nav class="nav-links">
+      <a onclick="filterCat('all')">Shop All</a>
+      <a onclick="filterCat('classic')">Watches</a>
+      <a onclick="filterCat('glass')">Glasses</a>
+      <a onclick="filterCat('print')">Shoes</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="login-link mono" href="login.html">
+        <span class="reg" style="width:13px;height:13px;"><span class="reg-circle" style="width:7px;height:7px;left:3px;top:3px;"></span></span>
+        <span class="login-label" id="accountLabel">LOGIN</span>
+      </a>
+      <button class="cart-btn" onclick="openDrawer()">
+        <span class="mono">CART</span>
+        <span class="cart-count" id="cartCount">0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow mono">
+        <span class="reg"><span class="reg-circle"></span></span>
+        COLLECTION NO. 014 — AUGUST DROP
+      </div>
+      <h1 class="display">
+        TIME<br>
+        <span class="stroke">STYLE</span><br>
+        <span class="fill-cobalt">EVERYWHERE</span>
+      </h1>
+      <p class="hero-sub">Minimal watches, statement glasses and everyday shoes — carefully selected pieces designed to finish your look.</p>
+      <button class="hero-cta" onclick="document.getElementById('catalog').scrollIntoView()">Shop the collection →</button>
+    </div>
+    <div class="hero-panel">
+      <div class="corner tl"></div>
+      <div class="corner br"></div>
+      <div class="tag">
+        <span>CHRONO WATCH · ONYX BLACK</span>
+        <div class="hero-product-foot">
+          <b>₹1,899.00</b>
+          <button class="add-btn" onclick="addToCart('hero-watch', this); openDrawer();">+ ADD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="strip">
+  <div class="strip-track mono">
+    <span>★ CURATED EVERYDAY ESSENTIALS</span>
+    <span>★ PREMIUM MATERIALS</span>
+    <span>★ PREMIUM FRAMES & LENSES</span>
+    <span>★ LIMITED COLLECTIONS</span>
+    <span>★ CURATED EVERYDAY ESSENTIALS</span>
+    <span>★ PREMIUM MATERIALS</span>
+    <span>★ PREMIUM FRAMES & LENSES</span>
+    <span>★ LIMITED COLLECTIONS</span>
+  </div>
+</div>
+
+<main class="catalog" id="catalog">
+  <div class="cat-head">
+    <h2 class="display">The Collection</h2>
+    <div class="tabs" id="tabs">
+      <button class="tab active" onclick="filterCat('all', this)">All</button>
+      <button class="tab" onclick="filterCat('classic', this)">Watches</button>
+      <button class="tab" onclick="filterCat('glass', this)">Glasses</button>
+      <button class="tab" onclick="filterCat('print', this)">Shoes</button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <h3>Press &amp; Pull</h3>
+      <p>A modern accessories store featuring watches, eyewear and shoes selected for clean design, comfort and everyday wear.</p>
+    </div>
+    <div>
+      <h3>Shop</h3>
+      <a onclick="filterCat('classic')">Watches</a>
+      <a onclick="filterCat('glass')">Glasses</a>
+      <a onclick="filterCat('print')">Shoes</a>
+    </div>
+    <div>
+      <h3>Support</h3>
+      <a>Size & Fit Guide</a>
+      <a>Shipping &amp; Returns</a>
+      <a>Track Your Order</a>
+    </div>
+    <div>
+      <h3>Studio</h3>
+      <a>About Vanta</a>
+      <a>Care Guide</a>
+      <a>Contact Us</a>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>© 2026 VANTA PRINT CO.</span>
+    <span>DEMO STOREFRONT — NO PAYMENT PROCESSED</span>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3 class="display">Your Cart</h3>
+    <button class="close-btn" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-items" id="drawerItems"></div>
+  <div class="drawer-foot">
+    <div class="foot-row"><span>Subtotal</span><span id="subtotal" class="mono">₹0.00</span></div>
+    <div class="foot-row"><span>Shipping</span><span id="shipping" class="mono">₹0.00</span></div>
+    <div class="foot-row total"><span>Total</span><span id="total" class="mono">₹0.00</span></div>
+    <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>Checkout</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastText">Added to cart</span></div>
+
+<script>
+const heroProduct = {
+id:'hero-watch',
+cat:'classic',
+name:'Chrono Watch · Onyx Black',
+desc:'Featured hero watch with a bold black-and-gold chronograph design.',
+price:1899,
+swatch:'classic-1',
+image:'https://di2ponv0v5otw.cloudfront.net/posts/2023/09/01/64f28e13fee468e00a25ac6d/m_64f28f2f91e053df940b68e3.jpeg'
+};
+
+const products = [
+{id:'w1',cat:'classic',name:'Onyx Chronograph Watch',desc:'Brushed steel case, black dial and precision quartz movement.',price:3499,swatch:'classic-1',image:'https://images.unsplash.com/photo-1524805444758-089113d48a6d?auto=format&fit=crop&w=900&q=85'},
+{id:'w2',cat:'classic',name:'Silver Minimal Watch',desc:'Clean silver case with a timeless white dial and mesh strap.',price:2999,swatch:'classic-2',image:'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=85'},
+{id:'w3',cat:'classic',name:'Midnight Leather Watch',desc:'Deep black dial with a premium leather strap and slim case.',price:2799,swatch:'classic-3',image:'https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?auto=format&fit=crop&w=900&q=85'},
+{id:'w4',cat:'classic',name:'Cobalt Sport Watch',desc:'Bold blue dial, durable strap and water-resistant everyday build.',price:3299,swatch:'classic-4',image:'https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?auto=format&fit=crop&w=900&q=85'},
+{id:'w5',cat:'classic',name:'Heritage Gold Watch',desc:'Warm gold-tone finish with a refined cream dial.',price:3899,swatch:'classic-5',image:'https://images.unsplash.com/photo-1508057198894-247b23fe5ade?auto=format&fit=crop&w=900&q=85'},
+{id:'g1',cat:'glass',name:'Aero Black Frames',desc:'Lightweight black frames with UV-protective clear lenses.',price:1599,swatch:'glass-1',glass:true,image:'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85'},
+{id:'g2',cat:'glass',name:'Amber Classic Frames',desc:'Warm amber acetate frames with a polished vintage profile.',price:1799,swatch:'glass-2',glass:true,image:'https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=900&q=85'},
+{id:'g3',cat:'glass',name:'Chrome Square Frames',desc:'Sharp silver frames with a contemporary square silhouette.',price:1899,swatch:'glass-3',glass:true,image:'https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=900&q=85'},
+{id:'g4',cat:'glass',name:'Rose Tint Sunglasses',desc:'Statement rose lenses with a soft oversized frame.',price:1699,swatch:'glass-4',glass:true,image:'https://images.unsplash.com/photo-1508296695146-257a814070b4?auto=format&fit=crop&w=900&q=85'},
+{id:'g5',cat:'glass',name:'Jade Green Shades',desc:'Green-tinted lenses and slim frames for a confident finish.',price:1799,swatch:'glass-5',glass:true,image:'https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=900&q=85'},
+{id:'p1',cat:'print',name:'Mono Runner Sneakers',desc:'Clean low-profile sneakers with cushioned everyday comfort.',price:2499,swatch:'print-1',image:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=85'},
+{id:'p2',cat:'print',name:'Street Court Sneakers',desc:'Classic court-inspired silhouette with a bold modern sole.',price:2699,swatch:'print-2',image:'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=900&q=85'},
+{id:'p3',cat:'print',name:'Desert Suede Loafers',desc:'Soft suede upper with a relaxed shape for smart-casual looks.',price:2999,swatch:'print-3',image:'https://images.unsplash.com/photo-1533867617858-e7b97e060509?auto=format&fit=crop&w=900&q=85'},
+{id:'p4',cat:'print',name:'Cloud White Trainers',desc:'Minimal white trainers made for effortless daily styling.',price:2399,swatch:'print-4',image:'https://images.unsplash.com/photo-1495555961986-6d4c1ecb7be3?auto=format&fit=crop&w=900&q=85'},
+{id:'p5',cat:'print',name:'Night Shift High Tops',desc:'Black high-top sneakers with a durable canvas upper.',price:2799,swatch:'print-5',image:'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&w=900&q=85'}
+];
+
+const catLabel = {classic:'Watch', glass:'Glasses', print:'Shoes'};
+let currentFilter = 'all';
+let cart = {}; // id -> qty
+
+function markSVG(mark){
+  const stroke = mark==='sun' || mark==='wave' ? 'var(--ink)' : (mark==='type'? 'var(--ink)':'var(--paper)');
+  if(mark==='reg'){
+    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="26" fill="none" stroke="${stroke}" stroke-width="3"/><line x1="50" y1="4" x2="50" y2="96" stroke="${stroke}" stroke-width="3"/><line x1="4" y1="50" x2="96" y2="50" stroke="${stroke}" stroke-width="3"/></svg>`;
+  }
+  if(mark==='grid'){
+    return `<svg viewBox="0 0 100 100">${[20,40,60,80].map(v=>`<line x1="${v}" y1="10" x2="${v}" y2="90" stroke="${stroke}" stroke-width="2" opacity="0.85"/>`).join('')}${[20,40,60,80].map(v=>`<line x1="10" y1="${v}" x2="90" y2="${v}" stroke="${stroke}" stroke-width="2" opacity="0.85"/>`).join('')}</svg>`;
+  }
+  if(mark==='sun'){
+    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="16" fill="${stroke}"/>${Array.from({length:12}).map((_,i)=>{const a=i*30*Math.PI/180;const x1=50+22*Math.cos(a),y1=50+22*Math.sin(a),x2=50+42*Math.cos(a),y2=50+42*Math.sin(a);return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${stroke}" stroke-width="4" stroke-linecap="round"/>`}).join('')}</svg>`;
+  }
+  if(mark==='wave'){
+    return `<svg viewBox="0 0 100 60">${[10,25,40,55].map(y=>`<path d="M0 ${y} Q 15 ${y-12} 30 ${y} T 60 ${y} T 100 ${y}" fill="none" stroke="${stroke}" stroke-width="3" opacity="0.8"/>`).join('')}</svg>`;
+  }
+  if(mark==='type'){
+    return `<svg viewBox="0 0 100 100"><text x="50" y="45" text-anchor="middle" font-family="Space Mono, monospace" font-size="22" fill="${stroke}">PRESS</text><text x="50" y="68" text-anchor="middle" font-family="Space Mono, monospace" font-size="22" fill="${stroke}">&amp; PULL</text></svg>`;
+  }
+  return '';
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const list = currentFilter==='all' ? products : products.filter(p=>p.cat===currentFilter);
+  grid.innerHTML = list.map(p=>`
+    <div class="card">
+      <div class="swatch ${p.swatch} ${p.glass?'glass':''}">
+        ${p.image ? `<img class="product-image" src="${p.image}" alt="${p.name}" loading="lazy">` : ''}
+        <span class="reg"><span class="reg-circle"></span></span>
+        ${p.mark ? `<div class="print-mark">${markSVG(p.mark)}</div>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-cat">${catLabel[p.cat]}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-foot">
+          <span class="card-price">₹${p.price.toFixed(2)}</span>
+          <button class="add-btn" onclick="addToCart('${p.id}', this)">+ Add</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCat(cat, el){
+  currentFilter = cat;
+  document.querySelectorAll('#tabs .tab').forEach(t=>t.classList.remove('active'));
+  if(el){ el.classList.add('active'); }
+  else {
+    document.querySelectorAll('#tabs .tab').forEach(t=>{
+      if(t.textContent.trim().toLowerCase().startsWith(cat) || (cat==='all' && t.textContent.trim()==='All')) t.classList.add('active');
+    });
+  }
+  renderGrid();
+  document.getElementById('catalog').scrollIntoView({behavior:'smooth'});
+}
+
+function addToCart(id, btnEl){
+  cart[id] = (cart[id]||0) + 1;
+  updateCartUI();
+  showToast('Added to cart');
+  if(btnEl){
+    btnEl.classList.add('stamped');
+    setTimeout(()=>btnEl.classList.remove('stamped'), 220);
+  }
+}
+
+function changeQty(id, delta){
+  if(!cart[id]) return;
+  cart[id] += delta;
+  if(cart[id] <= 0) delete cart[id];
+  updateCartUI();
+}
+
+function removeItem(id){
+  delete cart[id];
+  updateCartUI();
+}
+
+function updateCartUI(){
+  const ids = Object.keys(cart);
+  const totalItems = ids.reduce((s,id)=>s+cart[id],0);
+  document.getElementById('cartCount').textContent = totalItems;
+
+  const itemsEl = document.getElementById('drawerItems');
+  if(ids.length===0){
+    itemsEl.innerHTML = '<div class="empty-cart">YOUR CART IS EMPTY<br>— GO FIND YOUR STYLE —</div>';
+  } else {
+    itemsEl.innerHTML = ids.map(id=>{
+      const p = id==='hero-watch' ? heroProduct : products.find(x=>x.id===id);
+      const qty = cart[id];
+      return `
+        <div class="cart-item">
+          <div class="cart-swatch swatch ${p.swatch}">${p.image ? `<img class="product-image" src="${p.image}" alt="">` : ''}</div>
+          <div class="ci-info">
+            <div class="ci-name">${p.name}</div>
+            <div class="ci-cat">${catLabel[p.cat]}</div>
+            <div class="ci-row">
+              <div class="qty">
+                <button onclick="changeQty('${id}',-1)">−</button>
+                <span>${qty}</span>
+                <button onclick="changeQty('${id}',1)">+</button>
+              </div>
+              <span class="ci-price">₹${(p.price*qty).toFixed(2)}</span>
+            </div>
+            <button class="remove" onclick="removeItem('${id}')">Remove</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const subtotal = ids.reduce((s,id)=>{
+    const p = id==='hero-watch' ? heroProduct : products.find(x=>x.id===id);
+    return s + p.price*cart[id];
+  },0);
+  const shipping = subtotal===0 ? 0 : (subtotal >= 1999 ? 0 : 99);
+  document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+  document.getElementById('shipping').textContent = shipping===0 ? 'FREE' : `₹${shipping.toFixed(2)}`;
+  document.getElementById('total').textContent = `₹${(subtotal+shipping).toFixed(2)}`;
+  document.getElementById('checkoutBtn').disabled = ids.length===0;
+}
+
+function openDrawer(){
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function checkout(){
+  showToast('Demo store — checkout is not wired to a real payment provider');
+}
+
+let toastTimer;
+function showToast(text){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = text;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+renderGrid();
+updateCartUI();
+</script>
+
+<script>
+async function refreshAccountUI(){
+  const label=document.getElementById('accountLabel');
+  const link=document.querySelector('.login-link');
+  if(!label || !link) return;
+  try{
+    const response=await fetch('/api/auth/me',{credentials:'same-origin'});
+    const data=await response.json();
+    if(data.authenticated && data.user){
+      label.textContent=data.user.email;
+      link.href='#';
+      link.classList.add('account-link');
+      link.onclick=async function(e){
+        e.preventDefault();
+        if(!confirm('Log out of VANTA?')) return;
+        await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});
+        window.location.reload();
+      };
+    }
+  }catch(e){}
+}
+refreshAccountUI();
+</script>
+
+</body>
+</html>
