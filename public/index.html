@@ -1580,49 +1580,57 @@ async function loadProducts() {
 
     }
 
-
     products = mongoProducts.map(function(product) {
 
-      return {
+  return {
 
-        id: String(
-          product._id ||
-          product.id
-        ),
+    id: String(
+      product._id ||
+      product.id
+    ),
 
-        _id: product._id || null,
+    _id: product._id || null,
 
-        cat:
-          product.category ||
-          product.cat ||
-          "classic",
+    cat:
+      product.category ||
+      product.cat ||
+      "classic",
 
-        name:
-          product.name ||
-          "Unnamed Product",
+    name:
+      product.name ||
+      "Unnamed Product",
 
-        desc:
-          product.description ||
-          product.desc ||
-          "",
+    desc:
+      product.description ||
+      product.desc ||
+      "",
 
-        price:
-          Number(product.price || 0),
+    price:
+      Number(product.price || 0),
 
-        stock:
-          Number(product.stock || 0),
+    stock:
+      Number(product.stock || 0),
 
-        featured:
-          Boolean(product.featured),
+    featured:
+      Boolean(product.featured),
 
-        image:
-          typeof product.image === "string"
-            ? product.image
-            : ""
+    image:
+      product.image ||
+      "",
 
-      };
+    swatch:
+      product.swatch ||
+      (
+        product.category === "glass"
+          ? "glass-1"
+          : product.category === "print"
+            ? "print-1"
+            : "classic-1"
+      )
 
-    });
+  };
+
+});
 
 
     console.log(
@@ -1953,72 +1961,61 @@ function addToCart(
   id,
   button
 ) {
-
   const product =
     products.find(function(item) {
-
       return String(item.id) === String(id);
-
     });
 
-
   if (!product) {
-
     console.error(
       "Product not found:",
       id
     );
 
+    showToast("Product not found");
     return;
-
   }
 
+  // Check stock
+  const currentQty =
+    cart[id] || 0;
 
-  if (
-    product.stock > 0 &&
-    (cart[id] || 0) >= product.stock
-  ) {
+  if (Number(product.stock) <= 0) {
+    showToast("Out of stock");
+    return;
+  }
 
+  // Don't allow quantity above available stock
+  if (currentQty >= Number(product.stock)) {
     showToast(
-      "No more stock available"
+      `Only ${product.stock} available`
     );
-
     return;
-
   }
 
-
+  // Add product to cart
   cart[id] =
-    (cart[id] || 0) + 1;
-
+    currentQty + 1;
 
   updateCartUI();
-
 
   showToast(
     "Added to cart"
   );
 
-
+  // Button animation
   if (button) {
-
     button.classList.add(
       "stamped"
     );
 
-
     setTimeout(function() {
-
       button.classList.remove(
         "stamped"
       );
-
     }, 220);
-
   }
-
 }
-
 
 /* =========================================================
    CHANGE QUANTITY
@@ -2338,28 +2335,828 @@ function closeDrawer() {
 
 }
 
-
 /* =========================================================
    CHECKOUT
 ========================================================= */
 
-function checkout() {
+async function checkout() {
 
-  if (
-    Object.keys(cart).length === 0
-  ) {
+  const ids = Object.keys(cart);
 
+  if (ids.length === 0) {
+    showToast("Your cart is empty");
     return;
-
   }
 
+  // Remove old checkout if it exists
+  const oldCheckout =
+    document.getElementById("luxevaultCheckout");
 
-  showToast(
-    "Checkout will be connected next"
-  );
+  if (oldCheckout) {
+    oldCheckout.remove();
+  }
+
+  // Calculate display total
+  let subtotal = 0;
+
+  ids.forEach(function (id) {
+
+    const product = products.find(function (item) {
+      return String(item.id) === String(id);
+    });
+
+    if (product) {
+      subtotal += product.price * cart[id];
+    }
+
+  });
+
+  const shipping =
+    subtotal >= 1999 ? 0 : 99;
+
+  const total =
+    subtotal + shipping;
+
+  // Create checkout overlay
+  const checkoutPage =
+    document.createElement("div");
+
+  checkoutPage.id =
+    "luxevaultCheckout";
+
+  checkoutPage.innerHTML = `
+
+    <div class="checkout-overlay">
+
+      <div class="checkout-container">
+
+        <!-- HEADER -->
+
+        <div class="checkout-header">
+
+          <div>
+            <div class="checkout-label">
+              LUXEVAULT CHECKOUT
+            </div>
+
+            <h1>
+              COMPLETE YOUR ORDER
+            </h1>
+          </div>
+
+          <button
+            type="button"
+            class="checkout-close"
+            id="closeCheckout"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <div class="checkout-content">
+
+          <!-- LEFT -->
+
+          <div class="checkout-form-section">
+
+            <div class="checkout-section-title">
+              CUSTOMER INFORMATION
+            </div>
+
+            <div class="checkout-grid">
+
+              <div class="checkout-field full">
+                <label>FULL NAME</label>
+
+                <input
+                  id="checkoutName"
+                  type="text"
+                  placeholder="Your full name"
+                >
+              </div>
+
+
+              <div class="checkout-field">
+                <label>EMAIL ADDRESS</label>
+
+                <input
+                  id="checkoutEmail"
+                  type="email"
+                  placeholder="you@example.com"
+                >
+              </div>
+
+
+              <div class="checkout-field">
+                <label>PHONE NUMBER</label>
+
+                <input
+                  id="checkoutPhone"
+                  type="tel"
+                  placeholder="Phone number"
+                >
+              </div>
+
+
+              <div class="checkout-field full">
+                <label>ADDRESS</label>
+
+                <input
+                  id="checkoutAddress"
+                  type="text"
+                  placeholder="House number, street, area"
+                >
+              </div>
+
+
+              <div class="checkout-field">
+                <label>CITY</label>
+
+                <input
+                  id="checkoutCity"
+                  type="text"
+                  placeholder="City"
+                >
+              </div>
+
+
+              <div class="checkout-field">
+                <label>STATE</label>
+
+                <input
+                  id="checkoutState"
+                  type="text"
+                  placeholder="State"
+                >
+              </div>
+
+
+              <div class="checkout-field">
+                <label>PINCODE</label>
+
+                <input
+                  id="checkoutPincode"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="6"
+                  placeholder="6-digit pincode"
+                >
+              </div>
+
+            </div>
+
+
+            <button
+              type="button"
+              id="placeOrderBtn"
+              class="place-order-btn"
+            >
+              PLACE ORDER
+            </button>
+
+            <div
+              id="checkoutMessage"
+              class="checkout-message"
+            ></div>
+
+          </div>
+
+
+          <!-- RIGHT -->
+
+          <div class="checkout-summary">
+
+            <div class="checkout-section-title">
+              ORDER SUMMARY
+            </div>
+
+            <div id="checkoutItems"></div>
+
+            <div class="summary-line">
+              <span>Subtotal</span>
+              <strong>
+                ₹${subtotal.toFixed(2)}
+              </strong>
+            </div>
+
+            <div class="summary-line">
+              <span>Shipping</span>
+
+              <strong>
+                ${
+                  shipping === 0
+                    ? "FREE"
+                    : "₹" + shipping.toFixed(2)
+                }
+              </strong>
+            </div>
+
+            <div class="summary-total">
+
+              <span>TOTAL</span>
+
+              <strong>
+                ₹${total.toFixed(2)}
+              </strong>
+
+            </div>
+
+            <div class="checkout-note">
+              FREE SHIPPING ON ORDERS OVER ₹1,999
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+  document.body.appendChild(checkoutPage);
+
+
+  /* =====================================================
+     CHECKOUT STYLES
+  ===================================================== */
+
+  const style =
+    document.createElement("style");
+
+  style.id =
+    "luxevaultCheckoutStyles";
+
+  style.textContent = `
+
+    #luxevaultCheckout {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      font-family: "Work Sans", sans-serif;
+    }
+
+    .checkout-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(20, 18, 15, .72);
+      backdrop-filter: blur(5px);
+      overflow-y: auto;
+      padding: 40px 20px;
+    }
+
+    .checkout-container {
+      width: min(1050px, 100%);
+      margin: auto;
+      background: #f4f1e9;
+      border: 1px solid #cfc9bd;
+      box-shadow: 0 30px 80px rgba(0,0,0,.3);
+    }
+
+    .checkout-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 30px 34px;
+      border-bottom: 1px solid #d4cfc4;
+    }
+
+    .checkout-label {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+      color: #77736b;
+    }
+
+    .checkout-header h1 {
+      margin: 0;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 42px;
+      letter-spacing: 1px;
+      line-height: 1;
+      color: #111;
+    }
+
+    .checkout-close {
+      width: 42px;
+      height: 42px;
+      border: 1px solid #aaa49a;
+      background: transparent;
+      font-size: 28px;
+      cursor: pointer;
+    }
+
+    .checkout-close:hover {
+      background: #111;
+      color: #fff;
+    }
+
+    .checkout-content {
+      display: grid;
+      grid-template-columns: 1.4fr .8fr;
+      gap: 0;
+    }
+
+    .checkout-form-section {
+      padding: 32px;
+      border-right: 1px solid #d4cfc4;
+    }
+
+    .checkout-summary {
+      padding: 32px;
+      background: #ebe7dd;
+    }
+
+    .checkout-section-title {
+      font-family: "Space Mono", monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: #77736b;
+      margin-bottom: 22px;
+    }
+
+    .checkout-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .checkout-field {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .checkout-field.full {
+      grid-column: 1 / -1;
+    }
+
+    .checkout-field label {
+      font-family: "Space Mono", monospace;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #55514a;
+    }
+
+    .checkout-field input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 15px;
+      border: 1px solid #aaa49a;
+      background: #fff;
+      color: #111;
+      font-family: "Work Sans", sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .checkout-field input:focus {
+      border-color: #111;
+      box-shadow: 0 0 0 1px #111;
+    }
+
+    .place-order-btn {
+      width: 100%;
+      margin-top: 28px;
+      padding: 17px;
+      border: none;
+      background: #111;
+      color: #fff;
+      font-family: "Space Mono", monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+    }
+
+    .place-order-btn:hover {
+      background: #2b2925;
+    }
+
+    .place-order-btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .checkout-message {
+      min-height: 20px;
+      margin-top: 14px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .checkout-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 15px 0;
+      border-bottom: 1px solid #d0cbc0;
+      font-size: 13px;
+    }
+
+    .checkout-item-name {
+      font-weight: 600;
+    }
+
+    .checkout-item-qty {
+      color: #77736b;
+      margin-top: 4px;
+      font-size: 11px;
+    }
+
+    .summary-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 0;
+      font-size: 13px;
+      border-bottom: 1px solid #d0cbc0;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 22px 0;
+      font-family: "Space Mono", monospace;
+      font-size: 16px;
+      border-bottom: 1px solid #111;
+    }
+
+    .checkout-note {
+      margin-top: 20px;
+      font-family: "Space Mono", monospace;
+      font-size: 9px;
+      line-height: 1.6;
+      color: #77736b;
+    }
+
+    @media (max-width: 750px) {
+
+      .checkout-overlay {
+        padding: 15px;
+      }
+
+      .checkout-header {
+        padding: 22px;
+      }
+
+      .checkout-header h1 {
+        font-size: 32px;
+      }
+
+      .checkout-content {
+        grid-template-columns: 1fr;
+      }
+
+      .checkout-form-section {
+        border-right: none;
+        border-bottom: 1px solid #d4cfc4;
+        padding: 22px;
+      }
+
+      .checkout-summary {
+        padding: 22px;
+      }
+
+      .checkout-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .checkout-field.full {
+        grid-column: auto;
+      }
+
+    }
+
+  `;
+
+  document.head.appendChild(style);
+
+
+  /* =====================================================
+     ORDER SUMMARY ITEMS
+  ===================================================== */
+
+  const itemsContainer =
+    document.getElementById(
+      "checkoutItems"
+    );
+
+  ids.forEach(function (id) {
+
+    const product =
+      products.find(function (item) {
+        return String(item.id) === String(id);
+      });
+
+    if (!product) return;
+
+    const item =
+      document.createElement("div");
+
+    item.className =
+      "checkout-item";
+
+    item.innerHTML = `
+
+      <div>
+
+        <div class="checkout-item-name">
+          ${product.name}
+        </div>
+
+        <div class="checkout-item-qty">
+          QTY ${cart[id]}
+        </div>
+
+      </div>
+
+      <strong>
+        ₹${(
+          product.price * cart[id]
+        ).toFixed(2)}
+      </strong>
+
+    `;
+
+    itemsContainer.appendChild(item);
+
+  });
+
+
+  /* =====================================================
+     CLOSE
+  ===================================================== */
+
+  document
+    .getElementById("closeCheckout")
+    .addEventListener("click", function () {
+
+      checkoutPage.remove();
+
+    });
+
+
+  /* =====================================================
+     PLACE ORDER
+  ===================================================== */
+
+  document
+    .getElementById("placeOrderBtn")
+    .addEventListener("click", async function () {
+
+      const name =
+        document
+          .getElementById("checkoutName")
+          .value
+          .trim();
+
+      const email =
+        document
+          .getElementById("checkoutEmail")
+          .value
+          .trim();
+
+      const phone =
+        document
+          .getElementById("checkoutPhone")
+          .value
+          .trim();
+
+      const address =
+        document
+          .getElementById("checkoutAddress")
+          .value
+          .trim();
+
+      const city =
+        document
+          .getElementById("checkoutCity")
+          .value
+          .trim();
+
+      const state =
+        document
+          .getElementById("checkoutState")
+          .value
+          .trim();
+
+      const pincode =
+        document
+          .getElementById("checkoutPincode")
+          .value
+          .trim();
+
+      const message =
+        document.getElementById(
+          "checkoutMessage"
+        );
+
+      const button =
+        document.getElementById(
+          "placeOrderBtn"
+        );
+
+
+      /* VALIDATION */
+
+      if (
+        !name ||
+        !email ||
+        !phone ||
+        !address ||
+        !city ||
+        !state ||
+        !pincode
+      ) {
+
+        message.textContent =
+          "Please complete all fields.";
+
+        message.style.color =
+          "#c43d2f";
+
+        return;
+      }
+
+
+      if (
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          .test(email)
+      ) {
+
+        message.textContent =
+          "Please enter a valid email.";
+
+        message.style.color =
+          "#c43d2f";
+
+        return;
+      }
+
+
+      if (
+        !/^\d{6}$/.test(pincode)
+      ) {
+
+        message.textContent =
+          "Please enter a valid 6-digit pincode.";
+
+        message.style.color =
+          "#c43d2f";
+
+        return;
+      }
+
+
+      /* BUILD ITEMS */
+
+      const items =
+        ids.map(function (id) {
+
+          return {
+            productId: id,
+            quantity: cart[id]
+          };
+
+        });
+
+
+      button.disabled = true;
+
+      button.textContent =
+        "PLACING ORDER...";
+
+      message.textContent =
+        "Creating your order...";
+
+      message.style.color =
+        "#77736b";
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/orders",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              credentials: "include",
+
+              body: JSON.stringify({
+
+                customer: {
+                  name: name,
+                  email: email,
+                  phone: phone
+                },
+
+                shippingAddress: {
+                  address: address,
+                  city: city,
+                  state: state,
+                  pincode: pincode
+                },
+
+                items: items
+
+              })
+            }
+          );
+
+
+        const data =
+          await response.json();
+
+
+        if (
+          !response.ok ||
+          !data.ok
+        ) {
+
+          throw new Error(
+            data.message ||
+            "Unable to place order."
+          );
+
+        }
+
+
+        /* SUCCESS */
+
+        message.textContent =
+          "ORDER PLACED SUCCESSFULLY";
+
+        message.style.color =
+          "#16834b";
+
+        button.textContent =
+          "ORDER CONFIRMED";
+
+
+        console.log(
+          "ORDER CREATED:",
+          data.order
+        );
+
+
+        /* CLEAR CART */
+
+        cart = {};
+
+        updateCartUI();
+
+
+        /* REFRESH STOCK */
+
+        await loadProducts();
+
+
+        setTimeout(function () {
+
+          checkoutPage.remove();
+
+          showToast(
+            "Order placed successfully"
+          );
+
+        }, 1500);
+
+
+      } catch (error) {
+
+        console.error(
+          "CHECKOUT ERROR:",
+          error
+        );
+
+        message.textContent =
+          error.message ||
+          "Unable to place order.";
+
+        message.style.color =
+          "#c43d2f";
+
+        button.disabled = false;
+
+        button.textContent =
+          "PLACE ORDER";
+
+      }
+
+    });
 
 }
-
 
 /* =========================================================
    TOAST

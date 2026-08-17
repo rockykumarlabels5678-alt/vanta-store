@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const mongoose = require("mongoose");
 const Product = require("./models/product");
+const Order = require("./models/Order");
 
 const express = require("express");
 const session = require("express-session");
@@ -218,6 +219,160 @@ app.delete("/api/products/:id", async (req, res) => {
     res.status(500).json({
       ok: false,
       message: "Failed to delete product",
+      error: error.message
+    });
+  }
+});
+// ===============================
+// ORDER API
+// ===============================
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const {
+      customer,
+      shippingAddress,
+      items
+    } = req.body;
+
+    // Validate customer
+    if (
+      !customer ||
+      !customer.name ||
+      !customer.email ||
+      !customer.phone
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: "Customer information is required."
+      });
+    }
+
+    // Validate address
+    if (
+      !shippingAddress ||
+      !shippingAddress.address ||
+      !shippingAddress.city ||
+      !shippingAddress.state ||
+      !shippingAddress.pincode
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: "Complete shipping address is required."
+      });
+    }
+
+    // Validate items
+    if (
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
+      return res.status(400).json({
+        ok: false,
+        message: "Your order is empty."
+      });
+    }
+
+    let totalAmount = 0;
+    const orderItems = [];
+
+    // Check every product
+    for (const item of items) {
+      const product = await Product.findById(
+        item.productId
+      );
+
+      if (!product) {
+        return res.status(404).json({
+          ok: false,
+          message: `Product not found: ${item.productId}`
+        });
+      }
+
+      const quantity = Number(item.quantity);
+
+      if (!Number.isInteger(quantity) || quantity < 1) {
+        return res.status(400).json({
+          ok: false,
+          message: "Invalid product quantity."
+        });
+      }
+
+      // Check stock
+      if (product.stock < quantity) {
+        return res.status(400).json({
+          ok: false,
+          message: `${product.name} does not have enough stock.`
+        });
+      }
+
+      const itemTotal =
+        product.price * quantity;
+
+      totalAmount += itemTotal;
+
+      orderItems.push({
+        productId: product._id,
+        name: product.name,
+        price: product.price,
+        quantity
+      });
+    }
+
+    // Create order
+    const order = await Order.create({
+      customer: {
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone
+      },
+
+      shippingAddress: {
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        pincode: shippingAddress.pincode
+      },
+
+      items: orderItems,
+
+      totalAmount,
+
+      status: "pending"
+    });
+
+    // Reduce stock
+    for (const item of orderItems) {
+      await Product.findByIdAndUpdate(
+        item.productId,
+        {
+          $inc: {
+            stock: -item.quantity
+          }
+        }
+      );
+    }
+
+    console.log(
+      "ORDER CREATED:",
+      order._id.toString()
+    );
+
+    return res.status(201).json({
+      ok: true,
+      message: "Order created successfully.",
+      order
+    });
+
+  } catch (error) {
+    console.error(
+      "ORDER CREATION ERROR:",
+      error
+    );
+
+    return res.status(500).json({
+      ok: false,
+      message: "Failed to create order.",
       error: error.message
     });
   }
